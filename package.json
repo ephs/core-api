@@ -1,0 +1,20 @@
+{
+  "name": "ephscoreapi",
+  "version": "1.0.0",
+  "description": "API for core.edenpr.org",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-jwt": "^5.3.1",
+    "htmlparser2": "^3.9.2",
+    "jsonwebtoken": "^8.3.0",
+    "request": "^2.88.0",
+    "request-cookies": "^1.1.0"
+  }
+}
