@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('express-jwt');
+const jwtValidator = require('express-jwt');
 const config = require('../config/config');
-const auth = jwt({
+
+const auth = jwtValidator({
     secret: config.secret,
     userProperty: 'payload'
 });
@@ -14,8 +15,8 @@ const authManager = require('../controllers/authManager');
 router.post('/login', authManager.login);
 
 //router.get('/v1/sessions/available',auth, sessionManager.getSessions);
-router.get('/sessions/signedup',sessionManager.getSignedupSessions);
-//router.get('/v1/sessions/past',auth, sessionManager.getPast);
+//router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);
+router.get('/sessions/past',auth, sessionManager.getPastSessions);
 //router.post('/v1/sessions/signup',auth, sessionManager.signUp);
 
 module.exports = router;

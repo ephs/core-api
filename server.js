@@ -26,10 +26,8 @@ app.use(bodyParser.json()); // support json encoded bodies
 //Remove/add headers
 app.disable('x-powered-by');
 app.all('/*',function(req,res,next){
-    res.header('madeby' , 'simplyalec' );
-    res.header('madefor' , 'EPHS Coding Club' );
     res.header('builddate' , '9/14/2018' );
-    res.header('x-frame-options', 'SAMEORIGN');
+    res.header('x-frame-options', 'SAMEORIGN'); //TODO remove this if needed!
     next();
 });
 
@@ -42,7 +40,8 @@ app.use('/api/v1/', apiRoutes);
 app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
         res.status(401);
-        res.json({"message": err.name + ": " + err.message, "spl_msg": err.code});
+        res.json({"error": "true",
+            "error_code": "auth_required"});
     }
 });
 
