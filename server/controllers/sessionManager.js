@@ -4,8 +4,7 @@ module.exports.getPastSessions = function (req, res) {
     ephsCoreBridge.getPastSessions(function (err, sessions) {
         res.json({
             "error": "false",
-            "error_code": "",
-            "data": JSON.stringify(sessions)
+            "sessions": JSON.stringify(sessions)
         });
     }, req.payload.sessID);
 };

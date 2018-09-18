@@ -8,20 +8,20 @@ const Promises = require('bluebird');
 
 const config = require('../config/config');
 
-module.exports.getPastSessions = function (callback, sessID) {
-    const classFormat = {
-        0: "category",
-        1: "name",
-        2: "date",
-        3: "startDate",
-        4: "endDate",
-        5: "startTime",
-        6: "endTime",
-        7: "firstName",
-        8: "lastName",
-        9: "attended"
-    };
+const classFormat = { //The table format that Core displays.
+    0: "category", //For example, category is in row 1
+    1: "name", //row2
+    2: "date", //row3
+    3: "startDate", //row4
+    4: "endDate", //row5
+    5: "startTime", //row6
+    6: "endTime", //row7
+    7: "firstName", //row8
+    8: "lastName", //row9
+    9: "attended" //row9
+};
 
+module.exports.getPastSessions = function (callback, sessID) {
     let form = { //Form that is sent to the CORE server
         what: "displayPastClasses",
         content: ""
@@ -38,7 +38,6 @@ module.exports.getPastSessions = function (callback, sessID) {
             'Content-Length': contentLength,
             'Content-Type': 'application/x-www-form-urlencoded',
             'Cookie': sessCookie,
-            'X-Request-From': 'Core2 API' //Let the crappy sysadmins know what this is.
         },
         uri: config.coreURL, //Core website.
         body: formData,
@@ -87,7 +86,7 @@ module.exports.login = function (callback, username, password) { //Verify login 
     request({
         headers: {
             'Content-Length': contentLength,
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
         uri: config.coreURL, //Core website.
         body: formData,
@@ -98,6 +97,7 @@ module.exports.login = function (callback, username, password) { //Verify login 
         if ($('table.loginBox td span').text() === "* Invalid username or password") { //Where the invalid login thing will appear.
             callback(true, "");
         } else {
+
             let rawcookies = response.headers['set-cookie']; //Find cookies returned by server. //NOTE: You might think "OH THIS WILL BE THE SAME SESSION ID EVERY TIME!", but its not.
             for (var i in rawcookies) {
                 let cookie = new Cookie(rawcookies[i]);
