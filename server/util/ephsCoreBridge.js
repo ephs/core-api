@@ -8,7 +8,9 @@ const Promises = require('bluebird');
 
 const config = require('../config/config');
 
-const classFormat = { //The table format that Core displays.
+//There are the tables that CORE displays.
+
+const pastTableFormat = { //The table format that Core displays.
     0: "category", //For example, category is in row 1
     1: "name", //row2
     2: "date", //row3
@@ -21,8 +23,17 @@ const classFormat = { //The table format that Core displays.
     9: "attended" //row9
 };
 
-module.exports.getAvailableSessions = function(callback, sessID){
-    getSessionData("displaySignupScreen", sessID, function (err, response, body) {
+const availableTableFormat = { //The table format that Core displays.
+    0: "category", //For example, category is in row 1
+    1: "name", //row2
+    2: "date", //row3
+    3: "openSeats", //row4
+    4: "firstName", //row5
+    5: "lastName" //row6
+};
+
+module.exports.getAvailableSessions = function (callback, sessID) {
+    corePOST("displaySignupScreen", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
         if ($('#classesAssignedToTbl .tblHeader strong').text() === "Sessions Active For ()") { //CORE's amazing way of telling us we are not authenticated.
             callback(true, "")
@@ -33,9 +44,14 @@ module.exports.getAvailableSessions = function(callback, sessID){
                     let i = 0;
                     let classData = {};
                     $(this.children).each(function () {
-                        let text = $(this).text().trim();
-                        if (text !== "") { //There is this weird child in the tr that is empty. Search for it and ignore.
-                            classData[classFormat[i]] = text;
+                        if (this.name === "td") {
+                            if (i === 0) { //Ok, the first td is the plus button, and the second is a useless info button.
+                                let jsFunction = $(this.children[0]).attr('onclick'); //Get the first child (the image) and get the javascript
+                                classData["id"] = jsFunction.substring((getPosition(jsFunction, "'", 1) + 1), getPosition(jsFunction, "'", 2));
+                            } else if (i >= 2) {
+                                let text = $(this).text().trim();
+                                classData[availableTableFormat[i - 2]] = text; //Off set the classformat value by two because of the mentioned redundant tds.
+                            }
                             i++;
                         }
                     });
@@ -52,7 +68,7 @@ module.exports.getAvailableSessions = function(callback, sessID){
 
 module.exports.getPastSessions = function (callback, sessID) {
 
-    getSessionData("displayPastClasses", sessID, function (err, response, body) {
+    corePOST("displayPastClasses", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
         if ($('#pastClassesAssignedToTbl .tblHeader strong').text() === "Past Sessions Assigned To ()") { //CORE's amazing way of telling us we are not authenticated.
             callback(true, "")
@@ -63,9 +79,8 @@ module.exports.getPastSessions = function (callback, sessID) {
                     let i = 0;
                     let classData = {};
                     $(this.children).each(function () {
-                        let text = $(this).text().trim();
-                        if (text !== "") { //There is this weird child in the tr that is empty. Search for it and ignore.
-                            classData[classFormat[i]] = text;
+                        if (this.name === "td") {
+                            classData[pastTableFormat[i]] = $(this).text().trim();
                             i++;
                         }
                     });
@@ -118,7 +133,7 @@ module.exports.login = function (callback, username, password) { //Verify login 
     });
 };
 
-function getSessionData(what, sessID, callback){
+function corePOST(what, sessID, callback) {
     let form = { //Form that is sent to the CORE server
         what: what,
         content: ""
@@ -143,4 +158,8 @@ function getSessionData(what, sessID, callback){
     }, function (err, response, body) { //Callback
         callback(err, response, body);
     });
+}
+
+function getPosition(string, subString, index) { //For getting available post ids.
+    return (string.split(subString, index).join(subString).length);
 }
