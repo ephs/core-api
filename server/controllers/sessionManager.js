@@ -8,3 +8,12 @@ module.exports.getPastSessions = function (req, res) {
         });
     }, req.payload.sessID);
 };
+
+module.exports.getAvailableSessions = function (req, res) {
+    ephsCoreBridge.getAvailableSessions(function (err, sessions) {
+        res.json({
+            "error": "false",
+            "sessions": JSON.stringify(sessions)
+        });
+    }, req.payload.sessID);
+};

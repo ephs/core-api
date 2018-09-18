@@ -13,7 +13,7 @@ const authManager = require('../controllers/authManager');
 
 router.post('/login', authManager.login);
 
-//router.get('/v1/sessions/available',auth, sessionManager.getSessions);
+router.get('/sessions/available',auth, sessionManager.getAvailableSessions);
 //router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);
 router.get('/sessions/past',auth, sessionManager.getPastSessions);
 //router.post('/v1/sessions/signup',auth, sessionManager.signUp);

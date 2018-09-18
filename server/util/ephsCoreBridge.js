@@ -21,34 +21,42 @@ const classFormat = { //The table format that Core displays.
     9: "attended" //row9
 };
 
-module.exports.getPastSessions = function (callback, sessID) {
-    let form = { //Form that is sent to the CORE server
-        what: "displayPastClasses",
-        content: ""
-    };
-
-    let formData = querystring.stringify(form); //Build it all!
-    let contentLength = formData.length;
-
-    //Build cookies sent to server.
-    let sessCookie = request.cookie('PHPSESSID=' + sessID);
-
-    request({
-        headers: {
-            'Content-Length': contentLength,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Cookie': sessCookie,
-        },
-        uri: config.coreURL, //Core website.
-        body: formData,
-        method: 'POST',
-        port: 443
-    }, function (err, response, body) { //Ok, now parse the html. While I'm going to ensure we are logged in, we really don't need to. Since our JWT token will expire before the session will.
+module.exports.getAvailableSessions = function(callback, sessID){
+    getSessionData("displaySignupScreen", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
-        if ($('#pastClassesAssignedToTbl .tblHeader strong').text() === "Past Sessions Assigned To ()") {
+        if ($('#classesAssignedToTbl .tblHeader strong').text() === "Sessions Active For ()") { //CORE's amazing way of telling us we are not authenticated.
             callback(true, "")
         } else {
+            let classes = [];
+            let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
+                $('#classesNotAssignedToTbl1 tbody tr').each(function () {
+                    let i = 0;
+                    let classData = {};
+                    $(this.children).each(function () {
+                        let text = $(this).text().trim();
+                        if (text !== "") { //There is this weird child in the tr that is empty. Search for it and ignore.
+                            classData[classFormat[i]] = text;
+                            i++;
+                        }
+                    });
+                    classes.push(classData);
+                });
+            });
 
+            Promises.resolve().then(getClasses).then(function () { //When done, callback,
+                callback(false, classes)
+            });
+        }
+    });
+};
+
+module.exports.getPastSessions = function (callback, sessID) {
+
+    getSessionData("displayPastClasses", sessID, function (err, response, body) {
+        const $ = cheerio.load(body);
+        if ($('#pastClassesAssignedToTbl .tblHeader strong').text() === "Past Sessions Assigned To ()") { //CORE's amazing way of telling us we are not authenticated.
+            callback(true, "")
+        } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
                 $('#pastClassesAssignedToTbl tbody tr').each(function () {
@@ -83,6 +91,7 @@ module.exports.login = function (callback, username, password) { //Verify login 
     let formData = querystring.stringify(form); //Build it all!
     let contentLength = formData.length;
 
+    //This dosen't use getSessionData() because we need to be unauthenticated.
     request({
         headers: {
             'Content-Length': contentLength,
@@ -108,3 +117,30 @@ module.exports.login = function (callback, username, password) { //Verify login 
         }
     });
 };
+
+function getSessionData(what, sessID, callback){
+    let form = { //Form that is sent to the CORE server
+        what: what,
+        content: ""
+    };
+
+    let formData = querystring.stringify(form); //Build it all!
+    let contentLength = formData.length;
+
+    //Build cookies sent to server.
+    let sessCookie = request.cookie('PHPSESSID=' + sessID);
+
+    request({
+        headers: {
+            'Content-Length': contentLength,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': sessCookie,
+        },
+        uri: config.coreURL, //Core website.
+        body: formData,
+        method: 'POST',
+        port: 443
+    }, function (err, response, body) { //Callback
+        callback(err, response, body);
+    });
+}
