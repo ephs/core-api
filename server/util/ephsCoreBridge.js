@@ -20,7 +20,7 @@ const pastTableFormat = { //The table format that Core displays.
     6: "endTime", //row7
     7: "firstName", //row8
     8: "lastName", //row9
-    9: "attended" //row9
+    9: "attended" //row10
 };
 
 const availableTableFormat = { //The table format that Core displays.
@@ -71,7 +71,7 @@ module.exports.getPastSessions = function (callback, sessID) {
     corePOST("displayPastClasses", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
         if ($('#pastClassesAssignedToTbl .tblHeader strong').text() === "Past Sessions Assigned To ()") { //CORE's amazing way of telling us we are not authenticated.
-            callback(true, "")
+            callback(true, "");
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.

@@ -10,8 +10,10 @@ const auth = jwtValidator({
 
 const sessionManager = require('../controllers/sessionManager');
 const authManager = require('../controllers/authManager');
+const onLoad = require('../controllers/onLoad');
 
 router.post('/login', authManager.login);
+router.get('/onLoad', onLoad.onLoad);
 
 router.get('/sessions/available',auth, sessionManager.getAvailableSessions);
 //router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);

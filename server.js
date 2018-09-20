@@ -13,7 +13,7 @@ const port = process.env.PORT || '8080';
 
 //Create logger
 let logger = function(req, res, next){
-    if(req.connection.remoteAddress === "::1")
+    if(req.connection.remoteAddress === "::1") //Local host = ::1
         console.log("Localhost --> (" + req.method + ") " + req.url);
     else
         console.log(req.connection.remoteAddress + " --> (" + req.method + ") " + req.url);
@@ -44,8 +44,8 @@ app.use(bodyParser.json()); // support json encoded bodies
 //Remove/add headers
 app.disable('x-powered-by');
 app.all('/*',function(req,res,next){
-    res.header('builddate' , '9/14/2018' );
-    res.header('x-frame-options', 'SAMEORIGN'); //TODO remove this if needed!
+    res.header('x-made-by' , 'https://ephs.club' );
+    res.header('x-frame-options', 'SAMEORIGN');
     next();
 });
 
