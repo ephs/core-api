@@ -43,12 +43,19 @@ app.use(bodyParser.json()); // support json encoded bodies
 
 //Remove/add headers
 app.disable('x-powered-by');
-app.all('/*',function(req,res,next){
-    res.header('x-made-by' , 'https://ephs.club' );
-    res.header('x-frame-options', 'SAMEORIGN');
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers",
+        "Origin, X-Requeted-With, Content-Type, Accept, Authorization, RBR");
+    if (req.headers.origin) {
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+    }
+    if (req.method === 'OPTIONS') {
+        res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
+        return res.status(200).json({});
+    }
     next();
 });
-
 //Index page routes //TODO maybe get this out of server.js?
 app.get('/', function(req, res) {
     res.status(200);

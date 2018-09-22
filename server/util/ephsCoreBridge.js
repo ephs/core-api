@@ -40,6 +40,16 @@ module.exports.getAvailableSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
+
+                //Check for no session found message.
+                /*
+                if($('#classesAssignedToTbl tbody tr td')[0].text() === "No active sessions found"){
+                    console.log("heyo!");
+                }
+                */
+                if($("#classesNotAssignedToTbl1 tbody tr td").text() === "No available sessions found"){ //Make sure there are actually classes there
+                    return;
+                }
                 $('#classesNotAssignedToTbl1 tbody tr').each(function () {
                     let i = 0;
                     let classData = {};
@@ -75,6 +85,11 @@ module.exports.getPastSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
+                if($("#pastClassesAssignedToTbl tbody tr td").text() === "No past sessions found"){ //TODO: Find a person who has never signed up for CORE and look at this.
+                    return;
+                }
+
+
                 $('#pastClassesAssignedToTbl tbody tr').each(function () {
                     let i = 0;
                     let classData = {};
