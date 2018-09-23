@@ -16,7 +16,7 @@ router.post('/login', authManager.login);
 router.get('/onLoad', onLoad.onLoad);
 
 router.get('/sessions/available',auth, sessionManager.getAvailableSessions);
-//router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);
+router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);
 router.get('/sessions/past',auth, sessionManager.getPastSessions);
 //router.post('/v1/sessions/signup',auth, sessionManager.signUp);
 

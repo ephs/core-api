@@ -23,13 +23,49 @@ const pastTableFormat = { //The table format that Core displays.
     9: "attended" //row10
 };
 
-const availableTableFormat = { //The table format that Core displays.
+const availableTableFormat = { //The table format that Core displays. //This is misleading. This is the typical data return format.
     0: "category", //For example, category is in row 1
     1: "name", //row2
     2: "date", //row3
     3: "openSeats", //row4
     4: "firstName", //row5
     5: "lastName" //row6
+};
+module.exports.getSignedupSessions = function (callback, sessID) {
+    corePOST("displaySignupScreen", sessID, function (err, response, body) {
+        const $ = cheerio.load(body);
+        if ($('#classesAssignedToTbl .tblHeader strong').text() === "Sessions Active For ()") { //CORE's amazing way of telling us we are not authenticated.
+            callback(true, "")
+        } else {
+            let classes = [];
+            let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
+                if($("#classesAssignedToTbl tbody tr td").text() === "No active sessions found"){ //Make sure there are actually classes there
+                    return;
+                }
+                $('#classesAssignedToTbl tbody tr').each(function () {
+                    let i = 0;
+                    let classData = {};
+                    $(this.children).each(function () {
+                        if (this.name === "td") {
+                            if (i === 0) { //Ok, the first td is the plus button, and the second is a useless info button.
+                                let jsFunction = $(this.children[0]).attr('onclick'); //Get the first child (the image) and get the javascript
+                                classData["id"] = jsFunction.substring((getPosition(jsFunction, "'", 1) + 1), getPosition(jsFunction, "'", 2));
+                            } else if (i >= 2) {
+                                let text = $(this).text().trim();
+                                classData[availableTableFormat[i - 2]] = text; //Off set the classformat value by two because of the mentioned redundant tds.
+                            }
+                            i++;
+                        }
+                    });
+                    classes.push(classData);
+                });
+            });
+
+            Promises.resolve().then(getClasses).then(function () { //When done, callback,
+                callback(false, classes)
+            });
+        }
+    });
 };
 
 module.exports.getAvailableSessions = function (callback, sessID) {
@@ -40,13 +76,6 @@ module.exports.getAvailableSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
-
-                //Check for no session found message.
-                /*
-                if($('#classesAssignedToTbl tbody tr td')[0].text() === "No active sessions found"){
-                    console.log("heyo!");
-                }
-                */
                 if($("#classesNotAssignedToTbl1 tbody tr td").text() === "No available sessions found"){ //Make sure there are actually classes there
                     return;
                 }
@@ -85,11 +114,9 @@ module.exports.getPastSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
-                if($("#pastClassesAssignedToTbl tbody tr td").text() === "No past sessions found"){ //TODO: Find a person who has never signed up for CORE and look at this.
+                if($("#pastClassesAssignedToTbl tbody tr td").text() === "No past sessions found"){
                     return;
                 }
-
-
                 $('#pastClassesAssignedToTbl tbody tr').each(function () {
                     let i = 0;
                     let classData = {};
