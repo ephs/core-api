@@ -31,6 +31,73 @@ const availableTableFormat = { //The table format that Core displays. //This is 
     4: "firstName", //row5
     5: "lastName" //row6
 };
+
+//SESSID != sessionID.
+module.exports.joinSession = function (callback, sessID, sessionID, weekStart, weekEnd, sessionDate, startTime, endTime) { //WHY CORE?!?! We need to provide all this stuff just to join a session?!?!
+    //Btw, I could make this way smaller, but it would overwrite all the others sessions they signed for. The school would not like that.
+    let form = { //Form that is sent to the CORE server
+        sessionId: sessionID,
+        checkForScheduleOverlap: 'yes',
+        weekStart: weekStart,
+        weekEnd: weekEnd,
+        sessionDate: sessionDate,
+        startTime: startTime,
+        endTime: endTime,
+        what: "addStudentToSession",
+    };
+
+    let formData = querystring.stringify(form); //Build it all!
+    let contentLength = formData.length;
+    let sessCookie = request.cookie('PHPSESSID=' + sessID);
+    request({
+        headers: {
+            'Content-Length': contentLength,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': sessCookie
+        },
+        uri: config.coreURL, //Core website.
+        body: formData,
+        method: 'POST',
+        port: 443
+    }, function (err, response, body) {
+        //console.log(body);
+        if (!err) {
+            callback(false)
+        } else {
+            callback(true)
+        }
+    });
+};
+
+//SESSID != sessionID.
+module.exports.leaveSession = function (callback, sessID, sessionID) {
+    let form = { //Form that is sent to the CORE server
+        sessionId: sessionID,
+        what: "removeStudentFromSession",
+    };
+
+    let formData = querystring.stringify(form); //Build it all!
+    let contentLength = formData.length;
+    let sessCookie = request.cookie('PHPSESSID=' + sessID);
+    request({
+        headers: {
+            'Content-Length': contentLength,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Cookie': sessCookie
+        },
+        uri: config.coreURL, //Core website.
+        body: formData,
+        method: 'POST',
+        port: 443
+    }, function (err, response, body) {
+        if (!err) {
+            callback(false)
+        } else {
+            callback(true)
+        }
+    });
+};
+
 module.exports.getSignedupSessions = function (callback, sessID) {
     corePOST("displaySignupScreen", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
@@ -39,7 +106,7 @@ module.exports.getSignedupSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
-                if($("#classesAssignedToTbl tbody tr td").text() === "No active sessions found"){ //Make sure there are actually classes there
+                if ($("#classesAssignedToTbl tbody tr td").text() === "No active sessions found") { //Make sure there are actually classes there
                     return;
                 }
                 $('#classesAssignedToTbl tbody tr').each(function () {
@@ -68,7 +135,7 @@ module.exports.getSignedupSessions = function (callback, sessID) {
     });
 };
 
-module.exports.getAvailableSessions = function (callback, sessID) {
+module.exports.getAvailableSessions = function (callback, sessID) { //This is by far the worst. We need to parse a random javascript function to get additional info about the session.
     corePOST("displaySignupScreen", sessID, function (err, response, body) {
         const $ = cheerio.load(body);
         if ($('#classesAssignedToTbl .tblHeader strong').text() === "Sessions Active For ()") { //CORE's amazing way of telling us we are not authenticated.
@@ -76,7 +143,7 @@ module.exports.getAvailableSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
-                if($("#classesNotAssignedToTbl1 tbody tr td").text() === "No available sessions found"){ //Make sure there are actually classes there
+                if ($("#classesNotAssignedToTbl1 tbody tr td").text() === "No available sessions found") { //Make sure there are actually classes there
                     return;
                 }
                 $('#classesNotAssignedToTbl1 tbody tr').each(function () {
@@ -85,8 +152,12 @@ module.exports.getAvailableSessions = function (callback, sessID) {
                     $(this.children).each(function () {
                         if (this.name === "td") {
                             if (i === 0) { //Ok, the first td is the plus button, and the second is a useless info button.
-                                let jsFunction = $(this.children[0]).attr('onclick'); //Get the first child (the image) and get the javascript
-                                classData["id"] = jsFunction.substring((getPosition(jsFunction, "'", 1) + 1), getPosition(jsFunction, "'", 2));
+                                let jsFunction = $(this.children[0]).attr('onclick'); //Get the first child (the image) and get the javascript. This is the thing I mentioned earlier.
+                                classData["id"] = jsFunction.substring((getPosition(jsFunction, "'", 1) + 1), getPosition(jsFunction, "'", 2)); //Get the session ID
+                                classData["weekStart"] = jsFunction.substring((getPosition(jsFunction, "'", 5) + 1), getPosition(jsFunction, "'", 6)); //Get weekStart
+                                classData["weekEnd"] = jsFunction.substring((getPosition(jsFunction, "'", 7) + 1), getPosition(jsFunction, "'", 8)); //Get weekEnd
+                                classData["startTime"] = jsFunction.substring((getPosition(jsFunction, "'", 11) + 1), getPosition(jsFunction, "'", 12)); //Get weekEnd
+                                classData["endTime"] = jsFunction.substring((getPosition(jsFunction, "'", 13) + 1), getPosition(jsFunction, "'", 14)); //Get weekEnd
                             } else if (i >= 2) {
                                 let text = $(this).text().trim();
                                 classData[availableTableFormat[i - 2]] = text; //Off set the classformat value by two because of the mentioned redundant tds.
@@ -114,7 +185,7 @@ module.exports.getPastSessions = function (callback, sessID) {
         } else {
             let classes = [];
             let getClasses = new Promises(() => { //Create a promise and wait for it to finish.
-                if($("#pastClassesAssignedToTbl tbody tr td").text() === "No past sessions found"){
+                if ($("#pastClassesAssignedToTbl tbody tr td").text() === "No past sessions found") {
                     return;
                 }
                 $('#pastClassesAssignedToTbl tbody tr').each(function () {

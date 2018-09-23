@@ -18,7 +18,8 @@ router.get('/onLoad', onLoad.onLoad);
 router.get('/sessions/available',auth, sessionManager.getAvailableSessions);
 router.get('/sessions/signedup',auth,sessionManager.getSignedupSessions);
 router.get('/sessions/past',auth, sessionManager.getPastSessions);
-//router.post('/v1/sessions/signup',auth, sessionManager.signUp);
+router.post('/sessions/signup',auth, sessionManager.joinSession);
+router.post('/sessions/leave',auth, sessionManager.leaveSession);
 
 module.exports = router;
 

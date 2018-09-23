@@ -9,3 +9,4 @@ This was made because you can't directly fetch data from the application because
 * 127.0.0.1/api/v1/sessions/signedup (GET, Authorization)
 * 127.0.0.1/api/v1/sessions/past (GET, Authorization)
 * 127.0.0.1/api/v1/sessions/signup (POST, Authorization)
+* 127.0.0.1/api/v1/sessions/leave (POST, Authorization)
