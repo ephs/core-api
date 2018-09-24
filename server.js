@@ -2,14 +2,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const http = require('http');
+const https = require('http');
 const app = express();
 const rateLimit = require("express-rate-limit");
+const fs = require('fs');
 
 const config = require('./server/config/config');
 
 //App port. Testing is 8080.
-const port = process.env.PORT || '8080';
+const port = process.env.PORT || '8443';
 
 //Create logger
 let logger = function(req, res, next){
@@ -101,7 +102,12 @@ app.use(function (err, req, res, next) {
 */
 
 
-const server = http.createServer(app);
+const sslOptions = {
+    key: fs.readFileSync('/etc/letsencrypt/live/ephs.club/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/ephs.club/cert.pem')
+};
+
+const server = https.createServer(sslOptions, app);
 server.listen(port, () => console.log('EPHS Core API instance running on 127.0.0.1:' + port + '.'));
 
 //TODO: Can't get this to work because i'm lazy and don't want to switch DNS records to my IP.
