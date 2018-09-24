@@ -101,48 +101,4 @@ app.use(function (err, req, res, next) {
 });
 */
 
-
-const sslOptions = {
-    key: fs.readFileSync('/etc/letsencrypt/live/ephs.club/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/ephs.club/cert.pem')
-};
-
-const server = https.createServer(sslOptions, app);
-server.listen(port, () => console.log('EPHS Core API instance running on 127.0.0.1:' + port + '.'));
-
-//TODO: Can't get this to work because i'm lazy and don't want to switch DNS records to my IP.
-/*
-require('greenlock-express').create({
-
-    // Let's Encrypt v2 is ACME draft 11
-    version: 'draft-11'
-
-    // Note: If at first you don't succeed, switch to staging to debug
-    // https://acme-staging-v02.api.letsencrypt.org/directory
-    , server: 'https://acme-v02.api.letsencrypt.org/directory'
-
-    // Where the certs will be saved, MUST have write access
-    , configDir: '~/.config/acme/'
-
-    // You MUST change this to a valid email address
-    , email: 'alec@simplyalec.com'
-
-    // You MUST change these to valid domains
-    // NOTE: all domains will validated and listed on the certificate
-    , approveDomains: [ 'core.api.notalec.com', 'test.simplyalec.com' ]
-
-    // You MUST NOT build clients that accept the ToS without asking the user
-    , agreeTos: true
-
-    , app: app
-
-    // Join the community to get notified of important updates
-    , communityMember: true
-
-    // Contribute telemetry data to the project
-    , telemetry: true
-
-//, debug: true
-
-}).listen(8080, 8443 );
-*/
+module.exports = app;
