@@ -15,14 +15,14 @@ const port = process.env.PORT || '8443';
 //Create logger
 let logger = function(req, res, next){
     if(req.connection.remoteAddress === "::1") //Local host = ::1
-        console.log("Localhost --> (" + req.method + ") " + req.url);
+        console.log("[LOGGER] Localhost --> (" + req.method + ") " + req.url);
     else
-        console.log(req.connection.remoteAddress + " --> (" + req.method + ") " + req.url);
+        console.log("[LOGGER] " + req.connection.remoteAddress + " --> (" + req.method + ") " + req.url);
     next();
 };
 //Use logger
 app.all('*', logger);
-console.log("Running logger.");
+console.log("[LOGGER] Running logger.");
 
 //Rate limit (a little generous because all students will have the same IP).
 const limiter = rateLimit({
@@ -62,7 +62,7 @@ app.get('/', function(req, res) {
     res.status(200);
     res.json({
         "error": "false",
-        "message": "Hello there!"
+        "message": "OK"
     });
 });
 

@@ -14,11 +14,13 @@ module.exports.login = function (req, res) {
 
         ephsCoreBridge.login(function (err, sessID) {
                 if (err) {
+                    console.log("[LOGGER] Invalid login request from " + req.connection.remoteAddress + ".");
                     res.json({
                         "error": "true",
                         "error_code": "invalid_login"
                     });
                 } else {
+                    console.log("[LOGGER] Valid login request from " + req.connection.remoteAddress + ". Logging in as user " + req.body.username + ".");
                     //Yay our login is good, lets encode the sessionID in a token and send it back.
                     let token = jwt.sign({sessID: sessID, username: htmlEntities(req.body.username)}, config.secret, {expiresIn: "23min"}); //Why 23mins? Well, (by default) our little phpsessid will expire by then.
                     res.json({

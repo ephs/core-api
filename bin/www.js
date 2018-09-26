@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+console.log("Loading CoreAPI (github.com/ephs/coreAPI)...");
 
 /**
  * Module dependencies.
@@ -8,17 +9,21 @@ const fs = require('fs');
 const app = require('../server.js');
 const http = require('http');
 const https = require('https');
-const privateKey = fs.readFileSync('./ssl/testing_localhost.key', 'utf8');
-const certificate = fs.readFileSync('./ssl/testing_localhost.crt', 'utf8');
 
+const config = require('../server/config/config');
+
+const privateKey = fs.readFileSync(config.key, 'utf8');
+const certificate = fs.readFileSync(config.cert, 'utf8');
+
+console.log("Checking for SSL certificate key and cert in: " + config.key + ", " + config.cert);
 const credentials = {key: privateKey, cert: certificate};
 
 /**
- * Get port from environment and store in Express.
+ * Get port from environment and store.
  */
 
-let port = normalizePort(process.env.PORT || '8080');
-let sslPort = normalizePort(process.env.PORT || '8443');
+let port = normalizePort(process.env.PORT || config.port);
+let sslPort = normalizePort(process.env.PORT || config.sslPort);
 
 /**
  * Create HTTP server, for redirection purposes.
@@ -38,6 +43,7 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 console.log("HTTP server listening on port " + port);
+console.log("NON-SSL will redirect to SSL.");
 
 /**
  * Create HTTPS server.
