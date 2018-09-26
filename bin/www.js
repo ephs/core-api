@@ -30,8 +30,7 @@ let sslPort = normalizePort(process.env.PORT || config.sslPort);
  */
 
 const server = http.createServer(function (req, res) {
-    let hostname = ( req.headers.host.match(/:/g) ) ? req.headers.host.slice(0, req.headers.host.indexOf(":")) : req.headers.host;
-    res.writeHead(301, {"Location": "https://" + hostname + ":8443" + req.url});
+    res.writeHead(301, {"Location": "https://" + config.hostname + ":8443" + req.url});
     res.end();
 });
 
