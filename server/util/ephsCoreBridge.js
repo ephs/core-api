@@ -158,7 +158,9 @@ module.exports.getAvailableSessions = function (callback, sessID) { //This is by
                                 classData["weekEnd"] = jsFunction.substring((getPosition(jsFunction, "'", 7) + 1), getPosition(jsFunction, "'", 8)); //Get weekEnd
                                 classData["startTime"] = jsFunction.substring((getPosition(jsFunction, "'", 11) + 1), getPosition(jsFunction, "'", 12)); //Get weekEnd
                                 classData["endTime"] = jsFunction.substring((getPosition(jsFunction, "'", 13) + 1), getPosition(jsFunction, "'", 14)); //Get weekEnd
-                            } else if (i >= 2) {
+                            } else if (i === 1) { //Ok, this is the info button. We need a little bit of data from here.
+                                classData["classroom"] = $(this.children[0]).attr('classroom');
+                            }else if (i >= 2) {
                                 let text = $(this).text().trim();
                                 classData[availableTableFormat[i - 2]] = text; //Off set the classformat value by two because of the mentioned redundant tds.
                             }

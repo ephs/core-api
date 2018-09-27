@@ -12,11 +12,10 @@ const https = require('https');
 
 const config = require('../server/config/config');
 
-const privateKey = fs.readFileSync(config.key, 'utf8');
-const certificate = fs.readFileSync(config.cert, 'utf8');
-
-console.log("Checking for SSL certificate key and cert in: " + config.key + ", " + config.cert);
-const credentials = {key: privateKey, cert: certificate};
+let dev = false;
+if(dev){
+    console.log("WARNING: Developer mode is enabled. This should not be enabled if in production!")
+}
 
 /**
  * Get port from environment and store.
@@ -28,11 +27,15 @@ let sslPort = normalizePort(process.env.PORT || config.sslPort);
 /**
  * Create HTTP server, for redirection purposes.
  */
-
-const server = http.createServer(function (req, res) {
-    res.writeHead(301, {"Location": "https://" + config.hostname + ":8443" + req.url});
-    res.end();
-});
+let server;
+if(!dev) {
+    server = http.createServer(function (req, res) {
+        res.writeHead(301, {"Location": "https://" + config.hostname + ":8443" + req.url});
+        res.end();
+    });
+}else{
+    server = http.createServer(app);
+}
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -42,22 +45,32 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 console.log("HTTP server listening on port " + port);
-console.log("NON-SSL will redirect to SSL.");
 
 /**
  * Create HTTPS server.
  */
+if(!dev) {
+    console.log("NON-SSL will redirect to SSL.");
+    const privateKey = fs.readFileSync(config.key, 'utf8');
+    const certificate = fs.readFileSync(config.cert, 'utf8');
 
-let sslServer = https.createServer(credentials, app);
+    console.log("Checking for SSL certificate key and cert in: " + config.key + ", " + config.cert);
+    const credentials = {key: privateKey, cert: certificate};
 
-/**
- * Listen on provided port, on all network interfaces.
- */
 
-sslServer.listen(sslPort);
-sslServer.on('error', onError);
-sslServer.on('listening', onListening);
-console.log("HTTPS server listening on port " + sslPort);
+    let sslServer = https.createServer(credentials, app);
+
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+
+    sslServer.listen(sslPort);
+    sslServer.on('error', onError);
+    sslServer.on('listening', onListening);
+    console.log("HTTPS server listening on port " + sslPort);
+}else{
+    console.log("HTTPS server disabled for testing");
+}
 
 /**
  * Normalize a port into a number, string, or false.
