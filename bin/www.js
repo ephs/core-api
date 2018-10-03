@@ -6,15 +6,16 @@ console.log("Loading CoreAPI (github.com/ephs/coreAPI)...");
  */
 
 const fs = require('fs');
-const app = require('../server.js');
+const app = require('../server.js').app;
+const logger = require('../server.js').logger;
 const http = require('http');
 const https = require('https');
 
 const config = require('../server/config/config');
 
-let dev = false;
+let dev = true;
 if(dev){
-    console.log("WARNING: Developer mode is enabled. This should not be enabled if in production!")
+    logger.warn("[SERVER] DEV MODE IS ENABLED. THIS SHOULD NOT BE ENABLED IN PRODUCTION!");
 }
 
 /**

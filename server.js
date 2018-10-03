@@ -1,27 +1,31 @@
 //Node requires
 const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
-const https = require('http');
 const app = express();
 const rateLimit = require("express-rate-limit");
-const fs = require('fs');
+const winston = require('winston');
 
 const config = require('./server/config/config');
 
-//App port. Testing is 8080.
-const port = process.env.PORT || '8443';
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.File({filename: '../error.log', level: 'error'}),
+        new winston.transports.File({filename: '../combined.log'})
+    ]
+});
 
 //Create logger
-let logger = function(req, res, next){
-    if(req.connection.remoteAddress === "::1") //Local host = ::1
-        console.log("[LOGGER] Localhost --> (" + req.method + ") " + req.url);
+let reqTracker = function (req, res, next) {
+    if (req.connection.remoteAddress === "::1") //Local host = ::1
+        logger.info("[HTTP] Localhost --> (" + req.method + ") " + req.url);
     else
-        console.log("[LOGGER] " + req.connection.remoteAddress + " --> (" + req.method + ") " + req.url);
+        logger.info("[HTTP] " + req.connection.remoteAddress + " --> (" + req.method + ") " + req.url);
     next();
 };
 //Use logger
-app.all('*', logger);
+app.all('*', reqTracker);
 console.log("[LOGGER] Running logger.");
 
 //Rate limit (a little generous because all students will have the same IP).
@@ -30,16 +34,16 @@ const limiter = rateLimit({
     max: config.maxRequests,
     message: "You sure did overwhelm the server. Please wait before sending more requests. THIS HAS BEEN LOGGED!",
     onLimitReached: function (req, res, options) {
-        if(req.connection.remoteAddress === "::1")
-            console.log("Too many requests from localhost. Slowing.");
+        if (req.connection.remoteAddress === "::1")
+            logger.info("[R-LIMIT] Too many requests from localhost!");
         else
-            console.log("Too many requests from " + req.connection.remoteAddress + ". Slowing.");
+            logger.info("[R-LIMIT] Too many requests from " + req.connection.remoteAddress +  "!");
     }
 });
 app.use(limiter);
 console.log("Running rate limiter. " + config.maxRequests + " per 5 minutes.");
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json()); // support json encoded bodies
 
 //Remove/add headers
@@ -58,7 +62,7 @@ app.use((req, res, next) => {
     next();
 });
 //Index page routes //TODO maybe get this out of server.js?
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.status(200);
     res.json({
         "error": "false",
@@ -75,8 +79,10 @@ app.use('/api/v1/', apiRoutes);
 app.use(function (err, req, res, next) {
     if (err.name === 'UnauthorizedError') {
         res.status(401);
-        res.json({"error": "true",
-            "error_code": "auth_required"});
+        res.json({
+            "error": "true",
+            "error_code": "auth_required"
+        });
     }
 });
 
@@ -101,4 +107,7 @@ app.use(function (err, req, res, next) {
 });
 */
 
-module.exports = app;
+module.exports = {
+    app: app,
+    logger: logger
+};
