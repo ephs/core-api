@@ -117,7 +117,9 @@ module.exports.getSignedupSessions = function (callback, sessID) {
                             if (i === 0) { //Ok, the first td is the plus button, and the second is a useless info button.
                                 let jsFunction = $(this.children[0]).attr('onclick'); //Get the first child (the image) and get the javascript
                                 classData["id"] = jsFunction.substring((getPosition(jsFunction, "'", 1) + 1), getPosition(jsFunction, "'", 2));
-                            } else if (i >= 2) {
+                            } else if (i === 1) { //Ok, this is the info button. We need a little bit of data from here.
+                                classData["classroom"] = $(this.children[0]).attr('classroom');
+                            }else if (i >= 2) {
                                 let text = $(this).text().trim();
                                 classData[availableTableFormat[i - 2]] = text; //Off set the classformat value by two because of the mentioned redundant tds.
                             }
